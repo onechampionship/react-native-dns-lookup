@@ -39,6 +39,20 @@ public class RNDnsLookupModule extends BaseJavaModule {
         }
     }
 
+    @ReactMethod
+    public void getCName(String domainName, Promise promise) {
+        if (domainName == null || promise == null) {
+            promise.reject(new Error("Arguments cannot be null"));
+        }
+
+        try {
+            String cName = InetAddress.getByName(domainName).getCanonicalHostName();
+            promise.resolve(cName);
+        } catch (Exception e) {
+            promise.reject(e);
+        }
+    }
+
     @Override
     public String getName() {
         return "RNDnsLookup";
