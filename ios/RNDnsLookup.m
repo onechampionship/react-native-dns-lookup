@@ -11,6 +11,7 @@
 
 
 #import "RNDnsLookup.h"
+#import "RNDnsCname.h"
 
 @interface RNDnsLookup () <RCTBridgeModule>
 @end
@@ -44,26 +45,20 @@ RCT_EXPORT_METHOD(getCName: (NSString *) hostname
 {
     NSLog(@"[RNDnsLookup] Starting DNS lookup for CName on hostname.");
     
-    NSError * error;
-    NSString * cName = [self performCNameLookup:hostname error:&error];
+    NSError *error;
     
-    if (cName == nil) {
-        NSLog(@"[RNDnsLookup] %@", error.userInfo[NSDebugDescriptionErrorKey]);
-        NSString * errorCode = [NSString stringWithFormat:@"%ld", (long) error.code];
-        reject(errorCode, error.userInfo[NSDebugDescriptionErrorKey], error);
-    } else {
-        NSLog(@"[RNDnsLookup] CName lookup succeeded.");
-        resolve(cName);
-    }
+    [RNDnsCname getCNAME:hostname withCompletion:^(NSString *result) {
+        if (result == nil){
+            NSLog(@"RNDnsLookup error");
+            NSString *errorCode = [NSString stringWithFormat:@"%d", 101];
+            reject(errorCode, @"RNDnsLookup error", error);
+        }else{
+            NSLog(@"[RNDnsLookup] CName lookup succeeded.");
+            resolve(result);
+        }
+    }];
 }
 
-//Helper  method to perform CName lookup
-- (NSString *) performCNameLookup: (NSString *) hostname
-                             error: (NSError ** _Nonnull) error
-{
-	//https://stackoverflow.com/questions/43592659/how-to-get-cname-of-a-domain-in-ios
-	return "TODO";
-}
 // Helper method to perform the DNS lookup.
 - (NSArray *) performDnsLookup: (NSString *) hostname
                              error: (NSError ** _Nonnull) error
